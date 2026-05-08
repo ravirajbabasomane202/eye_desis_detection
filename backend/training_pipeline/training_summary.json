@@ -1,0 +1,92 @@
+{
+  "pipeline_complete": true,
+  "mode": "folder_based_no_zip",
+  "data_root": "D:\\Company_Data\\Thisies_second_eye_desises\\training_pipeline\\train_data",
+  "device": "cuda",
+  "internal_classes": [
+    "AMD",
+    "Cataract",
+    "DR",
+    "Glaucoma",
+    "HR",
+    "Normal_fundus",
+    "Normal_outer"
+  ],
+  "display_classes": [
+    "AMD",
+    "Cataract",
+    "DR",
+    "Glaucoma",
+    "HR",
+    "Normal"
+  ],
+  "normal_split": {
+    "Normal_fundus": "fundus images (from 'Normal' folder)",
+    "Normal_outer": "outer-eye images (from 'Cataract normal' folder)",
+    "merged_display": "Normal_fundus + Normal_outer \u2192 Normal at eval time"
+  },
+  "folder_mapping": {
+    "AMD": "AMD",
+    "Cataract": "Cataract",
+    "Cataract normal": "Normal_outer",
+    "DR": "DR",
+    "Glaucoma": "Glaucoma",
+    "HR": "HR",
+    "Normal": "Normal_fundus"
+  },
+  "outer_eye_folders": [
+    "Cataract normal",
+    "Cataract"
+  ],
+  "split": {
+    "train_per_internal_class": 1200,
+    "test_per_internal_class": 300
+  },
+  "feat_dim": 256,
+  "improvements_applied": [
+    "Fix-1 Normal-class-split (Normal_fundus + Normal_outer separate training)",
+    "Fix-2 mixup-disabled (lesion-safe)",
+    "Fix-3 focal-gamma-3.5 (harder Glaucoma/DR focus, up from 3.0)",
+    "Fix-4 dropout-0.35 (less regularisation for hard classes, down from 0.4)",
+    "Fix-5 xgb-internal-val-split (no test-set leakage)",
+    "Fix-A epochs-70 (extended from 50)",
+    "Fix-B early-stop-patience-10 (extended from 7)",
+    "Fix-C n-features-512 (up from 256, richer XGBoost feature set)",
+    "Fix-D xgb-max-depth-2 (reduced from 4, less Glaucoma overfit)",
+    "Fix-E stratified-val-split (balanced class proportions in val)",
+    "Fix-F weighted-ensemble-0.90-Deep-0.10-XGB (Deep Head leads)"
+  ],
+  "deep_head": {
+    "best_val_acc": 0.9341269841269841,
+    "test_acc_7class_internal": 0.9304761904761905,
+    "test_acc_6class_display": 0.9304761904761905,
+    "dropout": 0.3,
+    "weight_decay": 0.001,
+    "focal_gamma": 3.0,
+    "mixup_alpha": 0.0,
+    "label_smoothing": 0.05,
+    "early_stop_patience": 18
+  },
+  "xgboost": {
+    "xgb_test_accuracy_7class": 0.9238095238095239,
+    "xgb_test_accuracy_display_6": 0.9238095238095239,
+    "xgb_test_auc_display_6": 0.9935903086419754,
+    "ensemble_deep_weight": 0.95,
+    "ensemble_test_accuracy_display_6": 0.9304761904761905,
+    "ensemble_test_auc_display_6": 0.9959194444444445
+  },
+  "ensemble": {
+    "deep_weight": 0.95,
+    "xgb_weight": 0.050000000000000044,
+    "test_acc_display_6": 0.9304761904761905,
+    "test_auc_display_6": 0.9959194444444445
+  },
+  "saved_models": [
+    "./training_pipeline/proj_swin.pth",
+    "./training_pipeline/proj_maxvit.pth",
+    "./training_pipeline/proj_focal.pth",
+    "./training_pipeline/deep_head_model.pth",
+    "./training_pipeline/xgboost_model.pkl",
+    "./training_pipeline/feature_selector.pkl"
+  ]
+}

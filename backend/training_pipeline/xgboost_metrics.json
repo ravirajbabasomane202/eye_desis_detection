@@ -1,0 +1,8 @@
+{
+  "xgb_test_accuracy_7class": 0.9238095238095239,
+  "xgb_test_accuracy_display_6": 0.9238095238095239,
+  "xgb_test_auc_display_6": 0.9935903086419754,
+  "ensemble_deep_weight": 0.95,
+  "ensemble_test_accuracy_display_6": 0.9304761904761905,
+  "ensemble_test_auc_display_6": 0.9959194444444445
+}
