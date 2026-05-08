@@ -1075,11 +1075,28 @@ def internal_error(e):  return jsonify({"error": "Internal server error."}), 500
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Entry point
+# Startup — runs for BOTH  `python app.py`  AND  `gunicorn app:app`
 # ═══════════════════════════════════════════════════════════════════
+# MODEL_DIR: set this as an Environment Variable on Render
+#   Key   → MODEL_DIR
+#   Value → ./training_pipeline   (or wherever your .pth/.pkl files live)
+_startup_model_dir = os.environ.get("MODEL_DIR", "./training_pipeline")
+
+logger.info("=" * 60)
+logger.info("  Eye Disease Classification API  v3.0  (SQLAlchemy)")
+logger.info("=" * 60)
+
+with app.app_context():
+    db.create_all()
+    logger.info("✅ Database tables ready.")
+
+init_models(_startup_model_dir)
+
+
+# ─── Local dev entry point (gunicorn ignores this block) ────────────
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_dir", default="./training_pipeline")
+    parser.add_argument("--model_dir", default=_startup_model_dir)
     parser.add_argument("--port",      type=int, default=5000)
     parser.add_argument("--host",      default="0.0.0.0")
     parser.add_argument("--debug",     action="store_true")
@@ -1088,11 +1105,4 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    logger.info("=" * 60)
-    logger.info("  Eye Disease Classification API  v3.0  (SQLAlchemy)")
-    logger.info("=" * 60)
-    with app.app_context():
-        db.create_all()                    # create tables if they don't exist
-        logger.info("✅ Database tables ready.")
-    init_models(args.model_dir)
     app.run(host=args.host, port=args.port, debug=args.debug)
