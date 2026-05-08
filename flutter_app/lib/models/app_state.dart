@@ -7,7 +7,7 @@ import 'patient.dart';
 class AppState extends ChangeNotifier {
   List<PredictionResult> _history = [];
   List<Patient> _patients = [];
-  String _baseUrl = kIsWeb ? 'http://127.0.0.1:5000' : 'http://10.0.2.2:5000';
+  String _baseUrl = kIsWeb ? 'https://bookish-space-couscous-4p4rqv767w9cqrgq-5000.app.github.dev' : 'http://10.0.2.2:5000';
   bool _isLoading = false;
   bool _isInitialized = false;
 
@@ -31,35 +31,46 @@ class AppState extends ChangeNotifier {
     _loadSettings();
   }
 
-  Future<void> _loadSettings() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _baseUrl = prefs.getString('base_url') ?? _baseUrl;
-      if (kIsWeb && _baseUrl == 'http://10.0.2.2:5000') {
-        _baseUrl = 'http://127.0.0.1:5000';
-        await prefs.setString('base_url', _baseUrl);
-      }
-      _authToken = prefs.getString('auth_token');
-      if (_authToken?.isEmpty == true) _authToken = null;
-      _username = prefs.getString('username');
-      if (_username?.isEmpty == true) _username = null;
-      _role = prefs.getString('role') ?? 'patient';
+ Future<void> _loadSettings() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
 
-      final historyJson = prefs.getStringList('history') ?? [];
-      _history = historyJson
-          .map((e) => PredictionResult.fromJson(jsonDecode(e)))
-          .toList();
+    const defaultUrl = kIsWeb ? 'https://bookish-space-couscous-4p4rqv767w9cqrgq-5000.app.github.dev' : 'http://10.0.2.2:5000';
 
-      final patientJson = prefs.getStringList('patients') ?? [];
-      _patients =
-          patientJson.map((e) => Patient.fromJson(jsonDecode(e))).toList();
-    } catch (e, st) {
-      debugPrint('Failed to load app settings: $e\n$st');
-    } finally {
-      _isInitialized = true;
-      notifyListeners();
+    _baseUrl = prefs.getString('base_url') ?? defaultUrl;
+
+    if (kIsWeb &&
+        (_baseUrl.contains('10.0.2.2') ||
+         _baseUrl.contains('127.0.0.1') ||
+         _baseUrl.contains('localhost'))) {
+      _baseUrl = defaultUrl;
+      await prefs.setString('base_url', _baseUrl);
     }
+
+    _authToken = prefs.getString('auth_token');
+    if (_authToken?.isEmpty == true) _authToken = null;
+
+    _username = prefs.getString('username');
+    if (_username?.isEmpty == true) _username = null;
+
+    _role = prefs.getString('role') ?? 'patient';
+
+    final historyJson = prefs.getStringList('history') ?? [];
+    _history = historyJson
+        .map((e) => PredictionResult.fromJson(jsonDecode(e)))
+        .toList();
+
+    final patientJson = prefs.getStringList('patients') ?? [];
+    _patients = patientJson
+        .map((e) => Patient.fromJson(jsonDecode(e)))
+        .toList();
+  } catch (e, st) {
+    debugPrint('Failed to load app settings: $e\n$st');
+  } finally {
+    _isInitialized = true;
+    notifyListeners();
   }
+}
 
   Future<void> setBaseUrl(String url) async {
     _baseUrl = url.trim().replaceAll(RegExp(r'/$'), '');

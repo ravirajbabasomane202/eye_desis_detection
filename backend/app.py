@@ -53,7 +53,21 @@ logger = logging.getLogger(__name__)
 
 # ─── App & DB ────────────────────────────────────────────────────────
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=False,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+)
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return response
+
 
 # SQLite database stored next to app.py; override with DATABASE_URL env var
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -532,6 +546,16 @@ def _build_pdf_report(entry: dict, patient: dict | None) -> io.BytesIO | None:
 # ═══════════════════════════════════════════════════════════════════
 # Routes — Authentication (Feature 6)
 # ═══════════════════════════════════════════════════════════════════
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        return response, 200
+
 @app.route("/auth/register", methods=["POST"])
 def auth_register():
     if not JWT_AVAILABLE:
@@ -831,7 +855,11 @@ def batch_predict():
                 probabilities     = json.dumps({k: round(v*100,2) for k,v in inference["display_probabilities"].items()}),
                 symptoms          = json.dumps(meta.get("symptoms", [])),
                 quality           = json.dumps(quality),
-            )
+)
+
+
+
+
             db.session.add(entry)
             db.session.commit()
             item = {**entry.to_dict(), "success": True}
